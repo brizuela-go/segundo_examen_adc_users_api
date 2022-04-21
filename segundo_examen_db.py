@@ -25,6 +25,7 @@ class User(db.Model):
     RFFID = db.Column(db.Integer)
     personal_externo = db.Column(db.Boolean)
     RRHH = db.Column(db.Boolean)
+    profile_picture = db.Column(db.String(255))
 
     def __init__(
         self,
@@ -39,6 +40,7 @@ class User(db.Model):
         RFFID,
         personal_externo,
         RRHH,
+        profile_picture,
     ):
         self.name = name
         self.primer_apellido = primer_apellido
@@ -51,6 +53,7 @@ class User(db.Model):
         self.RFFID = RFFID
         self.personal_externo = personal_externo
         self.RRHH = RRHH
+        self.profile_picture = profile_picture
 
     def __repr__(self):
         return "User %i: %s %s %s" % (
@@ -64,7 +67,7 @@ class User(db.Model):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
-# db.create_all()
+db.create_all()
 
 usuarios = [
     {
@@ -80,6 +83,7 @@ usuarios = [
         "RFFID": 3456456,
         "personal_externo": True,
         "RRHH": False,
+        "profile_picture": "https://st.depositphotos.com/2931363/3703/i/950/depositphotos_37034497-stock-photo-young-black-man-smiling-at.jpg",
     }
 ]
 
@@ -99,6 +103,7 @@ class UserSchema(ma.Schema):
             "RFFID",
             "personal_externo",
             "RRHH",
+            "profile_picture",
         )
 
 
@@ -144,6 +149,7 @@ def create_user():
         RFFID=request.json["RFFID"],
         personal_externo=request.json["personal_externo"],
         RRHH=request.json["RRHH"],
+        profile_picture=request.json["profile_picture"],
     )
     db.session.add(new_user)
     db.session.commit()
@@ -190,6 +196,9 @@ def update_user(user_id):
     user.RRHH = request.json["RRHH"]
     db.session.commit()
 
+    user.profile_picture = request.json["profile_picture"]
+    db.session.commit()
+
     if "name" in request.json and type(request.json.get("name")) is not str:
         abort(400)
 
@@ -230,6 +239,12 @@ def update_user(user_id):
         abort(400)
 
     if "RRHH" in request.json and type(request.json.get("RRHH")) is not bool:
+        abort(400)
+
+    if (
+        "profile_picture" in request.json
+        and type(request.json.get("profile_picture")) is not str
+    ):
         abort(400)
 
     return jsonify({"user": User.as_dict(user)}), 201
